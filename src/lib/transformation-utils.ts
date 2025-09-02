@@ -52,11 +52,24 @@ function overlaysToParams(overlays: Overlay[]): string[] {
   overlays.forEach(o => {
     if (o.type === "image") {
       const params: string[] = ["l-image"];
-      params.push(`i-${o.src}`);
+
+      // Check if src is a URL or contains special characters
+      const isUrl = o.src.startsWith("http");
+      const hasSpecialChars = /[^a-zA-Z0-9@_-]/.test(o.src);
+
+      if (isUrl || hasSpecialChars) {
+        // Base64 encode and percent encode for URLs or special characters
+        const encoded = btoa(o.src);
+        params.push(`ie-${encodeURIComponent(encoded)}`);
+      } else {
+        // Use simple i parameter for basic paths
+        params.push(`i-${o.src}`);
+      }
+
       if (o.width) params.push(`w-${o.width}`);
       if (o.height) params.push(`h-${o.height}`);
-      if (o.x !== undefined) params.push(`x-${o.x}`);
-      if (o.y !== undefined) params.push(`y-${o.y}`);
+      if (o.x !== undefined) params.push(`lx-${o.x}`);
+      if (o.y !== undefined) params.push(`ly-${o.y}`);
       if (o.opacity !== undefined) params.push(`o-${o.opacity}`);
       if (o.bgColor) params.push(`bg-${o.bgColor}`);
       if (o.border) params.push(`b-${o.border}`);
@@ -69,16 +82,27 @@ function overlaysToParams(overlays: Overlay[]): string[] {
 
     if (o.type === "text") {
       const params: string[] = ["l-text"];
-      params.push(`i-${encodeURIComponent(o.text)}`);
+
+      // Check if text contains special characters
+      const hasSpecialChars = /[^a-zA-Z0-9@_-]/.test(o.text);
+
+      if (hasSpecialChars) {
+        // Base64 encode for special characters
+        const encoded = btoa(o.text);
+        params.push(`ie-${encodeURIComponent(encoded)}`);
+      } else {
+        params.push(`i-${o.text}`);
+      }
+
       if (o.fontSize) params.push(`fs-${o.fontSize}`);
       if (o.fontFamily) params.push(`ff-${o.fontFamily}`);
       if (o.color) params.push(`co-${o.color}`);
       if (o.backgroundColor) params.push(`bg-${o.backgroundColor}`);
       if (o.padding) params.push(`pa-${o.padding}`);
-      if (o.align) params.push(`lfo-${o.align}`);
-      if (o.bold) params.push("b-true");
-      if (o.italic) params.push("i-true");
-      if (o.strike) params.push("s-true");
+      if (o.align) params.push(`ia-${o.align}`);
+      if (o.bold) params.push("tg-b");
+      if (o.italic) params.push("tg-i");
+      if (o.strike) params.push("tg-strikethrough");
       if (o.rotation !== undefined) params.push(`rt-${o.rotation}`);
       if (o.flip) params.push(`fl-${o.flip}`);
       params.push("l-end");
@@ -155,14 +179,20 @@ function enhancementsToParams(enh: Enhancements): string[] {
   const parts: string[] = [];
   if (enh.blur) parts.push(`bl-${enh.blur}`);
   if (enh.sharpen) parts.push(`e-sharpen-${enh.sharpen}`);
+  if (enh.contrast) parts.push("e-contrast");
+  if (enh.grayscale) parts.push("e-grayscale");
   if (enh.shadow) {
     const s = enh.shadow;
-    const shadowParts: string[] = ["e-shadow"];
+    let shadowParam = "e-shadow";
+    const shadowParts: string[] = [];
     if (s.blur !== undefined) shadowParts.push(`bl-${s.blur}`);
     if (s.saturation !== undefined) shadowParts.push(`st-${s.saturation}`);
     if (s.offsetX !== undefined) shadowParts.push(`x-${s.offsetX}`);
     if (s.offsetY !== undefined) shadowParts.push(`y-${s.offsetY}`);
-    parts.push(shadowParts.join("_"));
+    if (shadowParts.length > 0) {
+      shadowParam += `-${shadowParts.join("_")}`;
+    }
+    parts.push(shadowParam);
   }
   if (enh.background) {
     const bg = enh.background;
@@ -288,7 +318,7 @@ export function buildTrString(config: TransformationConfig): string {
     if (config.basics) parts.push(...basicsToParams(config.basics));
     if (config.enhancements)
       parts.push(...enhancementsToParams(config.enhancements));
-    if (config.ai) parts.push(...aiToParams(config.ai));
+    if (config.aiMagic) parts.push(...aiToParams(config.aiMagic));
     if (config.overlays) parts.push(...overlaysToParams(config.overlays));
   }
 

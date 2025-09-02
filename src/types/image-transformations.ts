@@ -95,6 +95,8 @@ export type Overlay = ImageOverlay | TextOverlay | GradientBlock | SolidBlock;
 export type Enhancements = {
   blur?: number; // bl (0–100)
   sharpen?: number; // e-sharpen (0–10)
+  contrast?: boolean; // e-contrast
+  grayscale?: boolean; // e-grayscale
   shadow?: {
     blur?: number; // bl
     saturation?: number; // st

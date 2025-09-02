@@ -33,10 +33,13 @@ export type UploadOptions = {
 
 export const useImageKitUpload = () => {
   const [files, setFiles] = useState<UploadFile[]>([]);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   const authenticator = useCallback(async () => {
     try {
-      const response = await fetch("/api/upload-auth");
+      const response = await fetch("/api/upload-auth", {
+        credentials: "include",
+      });
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(
@@ -48,7 +51,7 @@ export const useImageKitUpload = () => {
       const {signature, expire, token, publicKey} = data;
       return {signature, expire, token, publicKey};
     } catch (error) {
-      console.error("Authentication error:", error);
+      console.log("Authentication error:", error);
       throw new Error("Authentication request failed");
     }
   }, []);
@@ -198,6 +201,11 @@ export const useImageKitUpload = () => {
       } catch (error) {
         const errorMessage = handleUploadError(error);
 
+        // Check if it's an upload limit error
+        if (errorMessage.includes("Upload limit reached")) {
+          setShowUpgradeModal(true);
+        }
+
         setFiles(prev =>
           prev.map(f =>
             f.id === fileData.id
@@ -257,6 +265,8 @@ export const useImageKitUpload = () => {
     uploadSingleFile,
     uploadAllFiles,
     retryFile,
+    showUpgradeModal,
+    setShowUpgradeModal,
     ...stats,
     isUploading: stats.uploadingCount > 0,
     hasFiles: files.length > 0,

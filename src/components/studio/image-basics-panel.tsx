@@ -88,6 +88,8 @@ export function ImageBasicsPanel({
   onTransformChange,
 }: BasicsControlsProps) {
   const update = (patch: Partial<BasicsTransform>) => {
+    console.log("Updating basics transforms:", patch);
+    console.log("Before:", transforms);
     onTransformChange({...transforms, ...patch});
   };
 

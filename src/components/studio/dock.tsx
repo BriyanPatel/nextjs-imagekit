@@ -3,6 +3,7 @@
 import * as React from "react";
 
 import {
+  Crown,
   Layers,
   SlidersHorizontal,
   Sparkles,
@@ -29,23 +30,32 @@ export type StudioDockProps = {
   onSelect?: (section: SectionKey) => void;
   activeSection?: SectionKey;
   isVideo?: boolean;
+  userPlan?: string;
 };
 
 export function StudioDock({
   onSelect,
   activeSection = "basics",
   isVideo = false,
+  userPlan = "free",
 }: StudioDockProps) {
+  const isPro = userPlan === "pro";
   const items: Array<{
     key: SectionKey;
     label: string;
     Icon: React.ComponentType<{className?: string}>;
+    isPremium?: boolean;
   }> = [
-    {key: "basics", label: "Basics", Icon: SlidersHorizontal},
-    {key: "overlays", label: "Overlays", Icon: Layers},
-    {key: "enhancements", label: "Enhancements", Icon: Sparkles},
-    {key: "ai", label: "AI Magic", Icon: Wand2},
-    {key: "audio", label: "Audio", Icon: Volume2},
+    {key: "basics", label: "Basics", Icon: SlidersHorizontal, isPremium: false},
+    {key: "overlays", label: "Overlays", Icon: Layers, isPremium: true},
+    {
+      key: "enhancements",
+      label: "Enhancements",
+      Icon: Sparkles,
+      isPremium: true,
+    },
+    {key: "ai", label: "AI Magic", Icon: Wand2, isPremium: true},
+    {key: "audio", label: "Audio", Icon: Volume2, isPremium: true},
   ];
 
   const [hoverIndex, setHoverIndex] = React.useState<number | null>(null);
@@ -96,8 +106,10 @@ export function StudioDock({
               "linear-gradient(to top left, rgba(236,72,153,0.08), rgba(236,72,153,0.00))",
           }}
         >
-          {items.map(({key, label, Icon}, i) => {
+          {items.map(({key, label, Icon, isPremium}, i) => {
             const isActive = activeSection === key;
+            const isLocked = isPremium && !isPro;
+
             if (isVideo && key === "ai") {
               return;
             }
@@ -124,6 +136,7 @@ export function StudioDock({
                       isActive
                         ? "bg-pink-500/15 ring-1 ring-pink-500/30 dark:bg-pink-400/15"
                         : "hover:bg-white/5",
+                      isLocked ? "opacity-60" : "",
                     ].join(" ")}
                     style={{
                       transform: `scale(${scale}) translateZ(0)`,
@@ -138,6 +151,9 @@ export function StudioDock({
                           : "text-foreground/80",
                       ].join(" ")}
                     />
+                    {isLocked && (
+                      <Crown className="absolute -top-1 -right-1 h-3 w-3 text-yellow-500" />
+                    )}
                     {isActive && (
                       <span
                         className="absolute -bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-pink-600 dark:bg-pink-400"
@@ -150,7 +166,7 @@ export function StudioDock({
                   side="top"
                   className="select-none border-white/10 bg-background/95 px-2 py-1 mb-2 text-xs text-black dark:text-white"
                 >
-                  {label}
+                  {label} {isLocked && "(Pro)"}
                 </TooltipContent>
               </Tooltip>
             );

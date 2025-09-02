@@ -8,15 +8,11 @@ import UploadModal from "@/components/upload/upload-modal";
 const UploadButton = () => {
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
 
-  const handleUploadClick = () => {
-    setUploadModalOpen(true);
-  };
-
   return (
     <>
       <Button
         className="cursor-pointer rounded-full bg-gradient-to-bl from-pink-400 to-pink-800 px-5 text-white"
-        onClick={handleUploadClick}
+        onClick={() => setUploadModalOpen(true)}
       >
         Upload
       </Button>

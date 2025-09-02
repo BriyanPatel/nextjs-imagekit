@@ -1,10 +1,15 @@
 import {Suspense} from "react";
 
 import {getAllMedia} from "@/actions";
+import {getUserSubscriptionInfo} from "@/actions/subscription.action";
 import GridLoader from "@/components/media/grid-loader";
 import MasonryGrid from "@/components/media/masonry-grid";
+import SubscriptionStatus from "@/components/subscription/subscription-status";
+import {getCurrentUser} from "@/lib/auth";
 
-export default function Home() {
+export default async function Home() {
+  const user = await getCurrentUser();
+
   return (
     <>
       <div className="mt-12 sm:mt-20 sm:text-center">
@@ -21,6 +26,14 @@ export default function Home() {
         </p>
       </div>
 
+      {user && (
+        <div className="mt-12 mb-8">
+          <Suspense fallback={<div>Loading subscription info...</div>}>
+            <SubscriptionInfo />
+          </Suspense>
+        </div>
+      )}
+
       <h2 className="mt-20 mb-2 text-2xl font-medium text-gray-900 sm:mt-32 dark:text-white">
         Your Media Collection
       </h2>
@@ -33,6 +46,16 @@ export default function Home() {
       </Suspense>
     </>
   );
+}
+
+async function SubscriptionInfo() {
+  const result = await getUserSubscriptionInfo();
+
+  if (!result.success) {
+    return null;
+  }
+
+  return <SubscriptionStatus {...result.data} />;
 }
 
 async function MediaGrid() {

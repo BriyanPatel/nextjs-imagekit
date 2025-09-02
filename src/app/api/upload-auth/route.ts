@@ -3,11 +3,19 @@ import {NextResponse} from "next/server";
 import {getUploadAuthParams} from "@imagekit/next/server";
 
 import {env} from "@/env";
+import {getCurrentUser} from "@/lib/auth";
 
 export async function GET() {
   try {
-    // Your application logic to authenticate the user
-    // For now, we'll allow all uploads, but you can add authentication logic here
+    const user = await getCurrentUser();
+    console.log(user, "CURRENT_USER");
+    if (!user) {
+      return NextResponse.json(
+        {error: "Authentication required"},
+        {status: 401}
+      );
+    }
+
     const {token, expire, signature} = getUploadAuthParams({
       privateKey: env.IMAGEKIT_PRIVATE_KEY,
       publicKey: env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY,

@@ -3,7 +3,7 @@
 import {revalidatePath} from "next/cache";
 import {cache} from "react";
 
-import {count, desc, eq} from "drizzle-orm";
+import {and, count, desc, eq} from "drizzle-orm";
 
 import {db} from "@/db";
 import {
@@ -16,6 +16,8 @@ import {
   mediaQuerySchema,
   updateMediaSchema,
 } from "@/db/schema/media";
+import {users} from "@/db/schema/users";
+import {getCurrentUser} from "@/lib/auth";
 import {handleError} from "@/lib/handlers";
 import action from "@/lib/handlers/action";
 import {PaginatedSearchParamsSchema} from "@/lib/schema";
@@ -38,6 +40,37 @@ export const createMedia = async (
     validationResult.params!;
 
   try {
+    const user = await getCurrentUser();
+    if (!user) {
+      throw new Error("Authentication required");
+    }
+
+    // Get user's current plan and upload count
+    const [userRecord] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, user.userId))
+      .limit(1);
+
+    if (!userRecord) {
+      throw new Error("User not found");
+    }
+
+    // Count current uploads
+    const [uploadCount] = await db
+      .select({count: count()})
+      .from(media)
+      .where(eq(media.userId, user.userId));
+
+    const currentUploads = uploadCount?.count || 0;
+
+    // Check upload limit
+    if (currentUploads >= userRecord.uploadLimit) {
+      throw new Error(
+        `Upload limit reached. Upgrade to Pro plan for unlimited uploads.`
+      );
+    }
+
     const [newMedia] = await db
       .insert(media)
       .values({
@@ -45,6 +78,7 @@ export const createMedia = async (
         originalUrl,
         mediaType,
         transformationConfig,
+        userId: user.userId,
       })
       .returning();
 
@@ -113,9 +147,23 @@ export const getAllMedia = cache(
     const limit = Number(pageSize);
 
     try {
+      const user = await getCurrentUser();
+      if (!user) {
+        return {
+          success: true,
+          data: {
+            media: [],
+            isNext: false,
+          },
+        };
+      }
+
       const whereCondition = filter
-        ? eq(media.mediaType, filter.toUpperCase() as "IMAGE" | "VIDEO")
-        : undefined;
+        ? and(
+            eq(media.userId, user.userId),
+            eq(media.mediaType, filter.toUpperCase() as "IMAGE" | "VIDEO")
+          )
+        : eq(media.userId, user.userId);
 
       const [totalResult] = await db
         .select({count: count()})

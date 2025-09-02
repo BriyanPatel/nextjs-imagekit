@@ -1,17 +1,28 @@
-type ActionResponse<T = null> = {
-  success: boolean;
-  data?: T;
-  error?: {
-    message: string;
-    details?: Record<string, string[]>;
+declare global {
+  type ActionResponse<T> =
+    | {
+        success: true;
+        data: T;
+      }
+    | {
+        success: false;
+        error: {
+          message: string;
+        };
+      };
+
+  type ErrorResponse = {
+    success: false;
+    error: {
+      message: string;
+    };
   };
-  status?: number;
-};
 
-type SuccessResponse<T = null> = ActionResponse<T> & {success: true};
-type ErrorResponse = ActionResponse<undefined> & {success: false};
+  type RouteParams = {
+    params: Promise<{
+      id: string;
+    }>;
+  };
+}
 
-type RouteParams = {
-  params: Promise<Record<string, string>>;
-  searchParams: Promise<Record<string, string>>;
-};
+export {};

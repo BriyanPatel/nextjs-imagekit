@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import {useDropzone} from "react-dropzone";
 
+import UpgradeModal from "@/components/subscription/upgrade-modal";
 import {Button} from "@/components/ui/button";
 import {
   Dialog,
@@ -43,6 +44,8 @@ const UploadModal = ({
     clearAllFiles,
     uploadAllFiles,
     retryFile,
+    showUpgradeModal,
+    setShowUpgradeModal,
     pendingCount,
     uploadingCount,
     successCount,
@@ -242,6 +245,11 @@ const UploadModal = ({
           </div>
         </div>
       </DialogContent>
+
+      <UpgradeModal
+        open={showUpgradeModal}
+        onOpenChange={setShowUpgradeModal}
+      />
     </Dialog>
   );
 };

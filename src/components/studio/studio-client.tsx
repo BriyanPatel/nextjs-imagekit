@@ -18,9 +18,10 @@ import {TransformationConfig} from "@/types";
 
 type StudioClientProps = {
   media: SelectMediaModel;
+  userPlan: string;
 };
 
-export default function StudioClient({media}: StudioClientProps) {
+export default function StudioClient({media, userPlan}: StudioClientProps) {
   const [isPending, startTransition] = useTransition();
   const [zoom, setZoom] = useState(100);
   const [activeSection, setActiveSection] = useState<SectionKey>("basics");
@@ -95,6 +96,7 @@ export default function StudioClient({media}: StudioClientProps) {
         <TransformPanel
           activeSection={activeSection}
           transforms={history.state}
+          userPlan={userPlan}
           onTransformChange={newTransforms => {
             history.set(newTransforms);
           }}
@@ -105,6 +107,7 @@ export default function StudioClient({media}: StudioClientProps) {
         activeSection={activeSection}
         onSelect={setActiveSection}
         isVideo={media.mediaType === "VIDEO"}
+        userPlan={userPlan}
       />
     </section>
   );

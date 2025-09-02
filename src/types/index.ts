@@ -16,7 +16,7 @@ export type ImageTransformationConfig = {
   basics?: ImageBasics;
   overlays?: ImageOverlay[];
   enhancements?: ImageEnhancements;
-  ai?: AiMagic;
+  aiMagic?: AiMagic;
 };
 
 export type VideoTransformationConfig = {

@@ -12,6 +12,12 @@ const envSchema = z.object({
     .enum(["development", "test", "production"])
     .default("development"),
   NEXT_RUNTIME: z.enum(["edge", "nodejs"]).optional(),
+  JWT_SECRET: z.string().min(1, "JWT secret is required"),
+  STRIPE_SECRET_KEY: z.string().min(1, "Stripe secret key is required"),
+  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z
+    .string()
+    .min(1, "Stripe publishable key is required"),
+  STRIPE_WEBHOOK_SECRET: z.string().min(1, "Stripe webhook secret is required"),
 });
 
 const createEnv = () => {
